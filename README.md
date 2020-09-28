@@ -15,7 +15,17 @@ This bot is customised for my discord server, so feel free to make the changes y
 
 [Colors](https://www.npmjs.com/package/colors)
 
-Libraries are already included within [node_modules](https://github.com/kittypickles9982/Discord-Bot-Beta/tree/master/node_modules)
+Libraries are not included.
+
+## Install
+
+Install Discord.js by opening a command prompt in the bots folder and do
+
+``npm install discord.js``
+
+Do the same for Colors
+
+``npm install colors``
 
 ## License
 
