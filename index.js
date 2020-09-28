@@ -10,6 +10,7 @@ const client = new Discord.Client();
 //functions and commands
 client.commands = new Discord.Collection();
 client.functions = new Discord.Collection();
+const cooldowns = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const functionFiles = fs.readdirSync('./functions').filter(file => file.endsWith('.js'));
 
@@ -231,6 +232,7 @@ client.on('message', message => {
 		        var commandName = args.shift().toLowerCase();
                 //gets command
                 var command = client.commands.get(commandName) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));;
+                //check if the given command is valid
                 if (!command) {
                     message.channel.send(`Unknown Command, Try Using ${config[1]}help`);
                 } else {
@@ -242,6 +244,25 @@ client.on('message', message => {
                         }
                         return message.channel.send(reply);
                     }
+
+                    //cooldown system
+                    if (!cooldowns.has(command.name)) {
+                    	cooldowns.set(command.name, new Discord.Collection());
+                    }
+                    const now = Date.now();
+                    const timestamps = cooldowns.get(command.name);
+                    const cooldownAmount = (command.cooldown || 3) * 1000;
+                    if (timestamps.has(message.author.id)) {
+                    	const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+                    	if (now < expirationTime) {
+                    		const timeLeft = (expirationTime - now) / 1000;
+                    		return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+                    	}
+                    } else {
+                        timestamps.set(message.author.id, now);
+                        setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+                    }
+
                     //executes whatever command was given
                     try {
                         command.execute(message, args, config, client);
