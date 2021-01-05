@@ -15,13 +15,24 @@ module.exports = {
 
         const fs = require('fs');
 
-        //add user profile if needed
+        //add global user profile if needed
         if(!fs.existsSync(`./data/users/${member.user.id}.json`)){
+						var defUserGlobalConfig = `
+							{
+								"version": "1",
+								"cash": "100",
+								"dailyTime": "0"
+							}`;
             fs.writeFileSync(`./data/users/${member.user.id}.json`, defMem);
         }
-
-        if(!fs.existsSync(`./data/servers/${member.guild.id}/users/{member.user.id}.json`)){
-            var defMem = '{\n   "version": "2",\n   "warns": "0",\n    "mutes": "0",\n    "kicks": "0",\n}';
+				//add private user profile if needed
+        if(!fs.existsSync(`./data/servers/${member.guild.id}/users/${member.user.id}.json`)){
+						var defUserGlobalConfig = `
+							{
+								"version": "1",
+								"cash": "100",
+								"dailyTime": "0"
+							}`;
             fs.writeFileSync(`./data/servers/${member.guild.id}/users/${member.user.id}.json`, defMem);
         }
         //sends message in welcome channel if set

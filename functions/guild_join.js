@@ -4,7 +4,7 @@ module.exports = {
         try {
             const fs = require('fs');
 
-            var defServerConfig = `
+            var serverConfig = `
 							{
 							  "version": "1",
 								"prefix": "~",
@@ -15,7 +15,7 @@ module.exports = {
 								"modChannel": "",
 								"bannedWords": ""
 							}`;
-						var defUserPrivateConfig = `
+						var userPrivateConfig = `
 							{
 								"version": "1",
 								"warns": "0",
@@ -23,7 +23,7 @@ module.exports = {
 								 "kicks": "0"
 							 }`;
 						//daily times are stored in a Unix timestamp | 43200 is 12 hours
-						var defUserGlobalConfig = `
+						var userGlobalConfig = `
 							{
 								"version": "1",
 								"cash": "100",
@@ -38,20 +38,23 @@ module.exports = {
 	          	fs.mkdirSync(`./data/servers/${guild.id}/users`);
 						}
 						if(!fs.existsSync(`./data/servers/${guild.id}/config.json`)) {
-		        	fs.writeFileSync(`./data/servers/${guild.id}/config.json`, defServerConfig);
+		        	fs.writeFileSync(`./data/servers/${guild.id}/config.json`, serverConfig);
 						}
-
+						//log creating user profiles
+						console.log(`[SYS] Writing User Profiles for ${guild.memberCount} Users`.brightMagenta);
 						//creating user profiles
             guild.members.cache.forEach(member => {
 							//check for and make private user profiles
 							if(!fs.existsSync(`./data/servers/${guild.id}/users/${member.user.id}.json`)) {
-								fs.writeFileSync(`./data/servers/${guild.id}/users/${member.user.id}.json`, defUserPrivateConfig);
+								fs.writeFileSync(`./data/servers/${guild.id}/users/${member.user.id}.json`, userPrivateConfig);
               }
 							//check for and make global user profiles
 							if(!fs.existsSync(`./data/users/${member.user.id}.json`)){
-								fs.writeFileSync(`./data/users/${member.user.id}.json`, defMem);
+								fs.writeFileSync(`./data/users/${member.user.id}.json`, userGlobalConfig);
 							}
             });
+						//log that it's done
+						console.log('[SYS] User Profiles Written'.brightMagenta);
 						//log entry
             console.log(`[SYS] Files Written For Guild - Name: ${guild.name} | ID: ${guild.id}`.brightMagenta);
         } catch(error) {
