@@ -3,11 +3,14 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const colors = require('colors');
 const path = require('path');
+
+
 //client
 const client = new Discord.Client();
 
 
 //functions and commands
+const botConfig = require("./botConfig.json");
 client.commands = new Discord.Collection();
 client.functions = new Discord.Collection();
 const cooldowns = new Discord.Collection();
@@ -23,121 +26,31 @@ for (const file of functionFiles) {
 	client.functions.set(functions.name, functions);
 }
 
-var config = fileLoad();
-
 client.once('ready', () => {
-	
-	try {
 
-	    /*
-	    Remember
-
-	    config[0] = token
-	    config[1] = prefix
-	    config[2] = watchList
-	    config[3] = cmdKill
-	    config[4] = modCh
-	    config[5] = cmdCh
-	    config[6] = welcomeCh
-	    config[7] = memberCntCh
-	    config[8] = welcomeMsg
-
-	    */
+    try {
 
 	    //loading message
-		console.log('[SYS] Bot Loading...'.brightMagenta);
+			console.log('[SYS] Bot Loading...'.brightMagenta);
 
-		//logs if the kill command is enabled, if value is an invalid value, it will default to false
-		if (config[3] === 'true' || config[3] === 'false') {
-		    //shows if set to true or false
-		    console.log(`[SYS] Command Kill : ${config[3]}`.brightMagenta);
-        } else {
-            //sets to false if incorrect value
-            console.log(`[WARNING] Incorrect Command Kill Value : ${config[3]} | Will set to false`.yellow.bold);
-            //updating with new value
-            fs.readFileSync("./config.txt", 'utf8', function (err,data) {
-
-              var formatted = data.replace(/${config[3]}/g, 'false');
-
-             fs.writeFileSync("./config.txt", formatted, 'utf8', function (err) {
-                if (err) return console.log(err);
-             });
+        //watching
+        client.user.setStatus('idle');
+        let memCnt = 0;
+        try {
+            client.guilds.cache.forEach(g => {
+                memCnt = memCnt + g.memberCount;
             });
-            //telling console
-            console.log('[SYS] config.txt Updated!'.brightMagenta);
-            console.log('[SYS] Reloading config.txt'.brightMagenta);
-            //reloading config
-            configLoad();
-            console.log('[SYS] config.txt Reloaded'.brightMagenta);
-            //tells final value
-            console.log(`[SYS] Command Kill : ${config.cmdKill}`.brightMagenta);
+        } catch(error) {
+            console.log(error);
         }
-
-        //shows prefix set
-		console.log(`[SYS] Prefix Set : ${config[1]}`.brightMagenta);
-
-        //converting watchList string to an array
-        var wl = config[2];
-        var wl = wl.split('*');
-
-		//watch variable setting
-		if (wl.length > 0) {
-		    //if custom watch message(s) has values, it'll choose a random one
-		    var curWatch = Math.floor(Math.random() * wl.length);
-            var watch = wl[curWatch];
-		} else {
-		    //else sets to ${config.prefix}help
-		    var watch = `${config[1]}help`;
-		}
-		//sets bot watch to determined value
-		client.user.setActivity(watch);
-		//console shows what the watch variable is
+        var watch = `${memCnt} users in ${client.guilds.cache.size} servers!`;
+		client.user.setActivity(watch, { type: 'WATCHING' });
 		console.log(`[SYS] Bot Activity is : Playing A Game ${watch}`.brightMagenta);
-		//console shows watch is set
 		console.log('[SYS] Bot Activity Set'.brightMagenta);
-
-        //shows what the command channel is set to, if not set, will show Not Set
-		if (config[4]) {
-		    console.log(`[SYS] modCh : ${config[4]}`.brightMagenta);
-		} else {
-		    console.log(`[SYS] modCh : Not Set`.brightMagenta);
-		} 1
-
-		//shows what the command channel is set to, if not set, will show Not Set
-		if (config[5]) {
-		    console.log(`[SYS] cmdCh : ${config[5]}`.brightMagenta);
-		} else {
-		    console.log(`[SYS] cmdCh : Not Set`.brightMagenta);
-		}
-
-		//shows what the command channel is set to, if not set, will show Not Set
-        if (config[6]) {
-        	console.log(`[SYS] welcomeCh : ${config[6]}`.brightMagenta);
-        } else {
-            console.log(`[SYS] welcomeCh : Not Set`.brightMagenta);
-        }
-
-        //shows what the command channel is set to, if not set, will show Not Set
-        if (config[7]) {
-        	console.log(`[SYS] memberCntCh : ${config[7]}`.brightMagenta);
-        } else {
-            console.log(`[SYS] memberCntCh : Not Set`.brightMagenta);
-        }
-
-        //shows if a welcome message is set
-        if (config[8]) {
-        	console.log(`[SYS] welcomeMsg Set : True`.brightMagenta);
-        } else {
-            console.log(`[SYS] welcomeMsg Set : False`.brightMagenta);
-        }
 
 		//console logs that the bot is ready
 		console.log('[INFO] Bot Ready!'.brightGreen);
-		//will send bot ready message in the mod channel if set
-		if (!config[5] == undefined) {
-		    client.channels.cache.get(config[5]).send('Bot Ready!');
-		}
-		//adds blank line to console to separate load messages from command logs
+        //add blank line
 		console.log('‎‎‎‎‎‎‎‎‏‏‎            ‎‏'.black);
 
 	} catch (error) {
@@ -177,14 +90,25 @@ client.once('ready', () => {
             }, 5000);
 
 	}
-	
-});	
+
+});
 
 client.on ("guildMemberAdd", member => {
-	
+
 	try {
+
+        if(!fs.existsSync(`./data/servers/${member.guild.id}/config.json`)) {
+            var defConfig = '{\n    "version": "2",\n   "prefix": "~",\n    "logEvent": ["MEMBER_JOIN", "MEMBER_LEAVE", "MEMBER_KICKED", "MEMBER_BANNED"],\n    "disabledCommands": "",\n    "commandChannel": "",\n    "MemberCountChannel": ""\n    "modChannel": ""\n    "bannedWords": ""\n    "welcomeChannel": ""\n}';
+            fs.writeFileSync(`./data/servers/${member.guild.id}/config.json`, defConfig);
+            console.log(`[SYS] Config Written For Guild - Name: ${member.guild.name} | ID: ${member.guild.id}`.brightMagenta);
+        }
+
+        //sets server config
+	    var config = require(`./data/servers/${member.guild.id}/config.json`);
+
 	    //runs user_join.js in the functions folder
         client.functions.get('user_join').execute(member, client, config);
+
 	} catch (error) {
 	    //catch any errors
 		console.log(`[ERROR] An Error Occurred While Adding A Member : ${error}`.brightRed.bold);
@@ -194,57 +118,77 @@ client.on ("guildMemberAdd", member => {
 client.on("guildMemberRemove", member => {
 
 	try {
+
+        if(!fs.existsSync(`./data/servers/${member.guild.id}/config.json`)) {
+            var defConfig = '{\n    "version": "2",\n   "prefix": "~",\n    "logEvent": ["MEMBER_JOIN", "MEMBER_LEAVE", "MEMBER_KICKED", "MEMBER_BANNED"],\n    "disabledCommands": "",\n    "commandChannel": "",\n    "MemberCountChannel": ""\n    "modChannel": ""\n    "bannedWords": ""\n    "welcomeChannel": ""\n}';
+            fs.writeFileSync(`./data/servers/${member.guild.id}/config.json`, defConfig);
+            console.log(`[SYS] Config Written For Guild - Name: ${member.guild.name} | ID: ${member.guild.id}`.brightMagenta);
+        }
+
+        //sets server config
+	    var config = require(`./data/servers/${member.guild.id}/config.json`);
+
 	    //runs user_leave.js in the functions folder
 		client.functions.get('user_leave').execute(member, client, config);
+
 	} catch (error) {
 	    //catch any errors
 		console.log(`[ERROR] Member ${member.user.username} Leave Error : ${error}`.brightRed.bold);
 	}
 })
 
+client.on("guildCreate", (guild) => {
+    // This event triggers when the bot joins a guild.
+		console.log(`Joined new guild: ${guild.name}`);
+    client.functions.get('guild_join').execute(guild, client);
+});
+
+client.on("guildDelete", (guild) => {
+    // This event triggers when the bot leaves a guild.
+    console.log(`Left guild: ${guild.name}`);
+});
+
 client.on('message', message => {
-    var config = fileLoad();
+
     try {
 
-	    if (config[7]) {
-	        try {
+        //checks if files exist
+        if(!fs.existsSync(`./data/servers/${message.guild.id}/config.json`)) {
+            var defConfig = '{\n    "version": "2",\n   "prefix": "~",\n    "logEvent": ["MEMBER_JOIN", "MEMBER_LEAVE", "MEMBER_KICKED", "MEMBER_BANNED"],\n    "disabledCommands": "",\n    "commandChannel": "",\n    "MemberCountChannel": ""\n    "modChannel": ""\n    "bannedWords": ""\n    "welcomeChannel": ""\n}';
+            fs.writeFileSync(`./data/servers/${message.guild.id}/config.json`, defConfig);
+            console.log(`[SYS] Config Written For Guild - Name: ${guild.name} | ID: ${guild.id}`.brightMagenta);
+        }
+        //sets server config
 
-                //the 8 is the amount of bots in my server
-	            const members = client.guilds.cache.get(message.guild.id).memberCount - 8;
-	            client.channels.cache.get(config[7]).setName(`Members : ${members}`);
-
-	        } catch (error) {
-	            //catch any errors
-	        	console.log(`[ERROR] Member Update Error : ${error}`.red.bold);
-	        }
-	    }
+	    var config = require(`./data/servers/${message.guild.id}/config.json`);
 
         //if it doesn't start with the prefix or is a bot, ignore
-	    if (!message.content.startsWith(config[1]) || message.author.bot) return;
+	    if (!message.content.startsWith(config.prefix) || message.author.bot) return;
 	    //if the message is from a DM, ignore
 	    if (message.channel.type === 'dm') return;
-	    //if the bot command channel is not set or the message was sent in the correct channel, follow through
-	    if (config[5] == undefined || message.channel.id === config[5]) {
+	    //accepts commands if sent in command channel if send, mod channel, or if the sender has admin or manage server permissions
+	    if (config.commandChannel == undefined || message.channel.id === config.commandChannel || message.channel.id === config.modChannel || message.member.hasPermission('ADMINISTRATOR') || message.member.hasPermission('MANAGE_GUILD')) {
             try {
                 //slice up the message into an array
-	    	    var args = message.content.slice(config[1].length).trim().split(/ +/);
-	    	    //remove the prefix and make the first argument, the command, lowercase
+	            var args = message.content.slice(config.prefix.length).trim().split(/ +/);
+	            //remove the prefix and make the first argument, the command, lowercase
 		        var commandName = args.shift().toLowerCase();
                 //gets command
                 var command = client.commands.get(commandName) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));;
                 //check if the given command is valid
                 if (!command) {
-                    message.channel.send(`Unknown Command, Try Using ${config[1]}help`);
+                    message.channel.send(`Unknown Command, Try Using ${config.prefix}help`);
+                } else if(config.disabledCommands.includes(command.name)) {
+                    message.channel.send('Sorry! That command has been disable in this server!');
                 } else {
                     //if the arguments required for the command aren't enough, let the user know
                     if (command.args && !args.length) {
                         let reply = 'Please add some arguments after the command';
                         if (command.usage) {
-                            reply += `\nThe proper usage would be: \`${config[1]}${command.name} ${command.usage}\``;
+                            reply += `\nThe proper usage would be: \`${config.prefix}${command.name} ${command.usage}\``;
                         }
                         return message.channel.send(reply);
                     }
-
                     //cooldown system
                     if (!cooldowns.has(command.name)) {
                     	cooldowns.set(command.name, new Discord.Collection());
@@ -269,14 +213,14 @@ client.on('message', message => {
                     } catch (error) {
                         console.log(`[WARNING] Command Error : ${error}`.yellow.bold);
                     }
-                }
-			} catch (error) {
-			    //this will happen if the command given is not a command in the commands folder
-			    console.log(`[WARNING] Command Error : ${error}`.yellow.bold);
-			}
-	    }
 
-		try {
+                }
+		    } catch (error) {
+		    	//this will happen if the command given is not a command in the commands folder
+		    	console.log(`[WARNING] Command Error : ${error}`.yellow.bold);
+		    }
+		}
+        try {
 		    //logs the command and when it was sent in the console
 			var now = Date.now();
 		    var dateObj = new Date(now);
@@ -286,13 +230,15 @@ client.on('message', message => {
 		    //turns the different times into one string
 		    var comSendForm = hours.toString().padStart(2, '0') + ':' + minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
 		    //puts the time and command together and outputs it in the console
-		   	console.log(`[CMD] ${comSendForm}  |  Command Sent : ${command.name}`.brightCyan);
-
+		    if(!command){
+		        console.log(`[CMD] ${comSendForm}  |  Command Sent : ${commandName}`.brightCyan);
+		    } else {
+		   	    console.log(`[CMD] ${comSendForm}  |  Command Sent : ${command.name}`.brightCyan);
+		   	}
 		} catch (error) {
 		    //in case something is wrong with the command logging
 		    console.log(`[ERROR] Command Logging Error : ${error}`.brightRed.bold);
 		}
-
     } catch (error) {
         //never had this go off, but in case something is wrong in the entire on message function
         //but the other try statements will catch those errors
@@ -301,38 +247,4 @@ client.on('message', message => {
     }
 });
 
-//functions
-function fileLoad() {
-
-    //this should enable editing settings
-    //restarting the bot!
-
-    //load config.txt
-    try {
-        //grabs file as a string
-        var raw = fs.readFileSync("./config.txt", {"encoding": "utf-8"});
-        //turns into array at the new lines
-        var raw = raw.split("\n");
-        //shifts 16 times to remove the comments
-        for (let i = 0; i < 16; i++) {
-            raw.shift();
-        }
-        //sets variable as the final array
-        var config = raw;
-        //returns the array
-    } catch (error) {
-        //catch any error in case something went wrong
-        console.log(`[ERROR] Problem Loading config.txt: ${error}`.red);
-    }
-
-    //return the config array
-    return config;
-};
-
-//log in to your bot
-try {
-    client.login(config[0]);
-} catch (error) {
-    process.stdout.write("[FATAL] Unknown or Invalid Bot Token!!!".black.bgBrightRed);
-    process.exit();
-}
+client.login(botConfig.token);

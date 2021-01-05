@@ -5,17 +5,21 @@ module.exports = {
 	usage: '<commandName>',
 	cooldown: 5,
 	execute(message, args, config, client) {
+        try {
+            var commands = client.commands;
+            var data = [];
 
-        var commands = client.commands;
-        var data = [];
+            if(!args.length) {
 
-        if(!args.length) {
+		        data.push(`***${message.guild.name}***\n`);
+                data.push(commands.map(command => command.name).join('\n'));
+                data.push(`\nYou can send \`${config[1]}help <command name>\` to get info on a specific command!`);
 
-		    data.push(`***${message.guild.name}***\n`);
-            data.push(commands.map(command => command.name).join('\n'));
-            data.push(`\nYou can send \`${config[1]}help <command name>\` to get info on a specific command!`);
+                message.channel.send(data);
 
-            message.channel.send(data);
+            }
+        } catch (error) {
+            console.log(`[ERROR] Help Menu Error : ${error}`.red.bold);
         }
-    },
+	},
 };
