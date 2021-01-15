@@ -31,7 +31,7 @@ client.once('ready', () => {
     try {
 
 	    //loading message
-			console.log('[SYS] Bot Loading...'.brightMagenta);
+		console.log('[SYS] Bot Loading...'.brightMagenta);
 
         //watching
         client.user.setStatus('idle');
@@ -51,7 +51,7 @@ client.once('ready', () => {
 		//console logs that the bot is ready
 		console.log('[INFO] Bot Ready!'.brightGreen);
         //add blank line
-		console.log('‎‎‎‎‎‎‎‎‏‏‎            ‎‏'.black);
+		console.log('‎‎‎‎‎‎‎‎‏‏‎‎‎‏‎‎‎‏‎‎‎‏‏'.black);
 
 	} catch (error) {
 
@@ -154,7 +154,16 @@ client.on('message', message => {
 
         //checks if files exist
         if(!fs.existsSync(`./data/servers/${message.guild.id}/config.json`)) {
-            var defConfig = '{\n    "version": "2",\n   "prefix": "~",\n    "logEvent": ["MEMBER_JOIN", "MEMBER_LEAVE", "MEMBER_KICKED", "MEMBER_BANNED"],\n    "disabledCommands": "",\n    "commandChannel": "",\n    "MemberCountChannel": ""\n    "modChannel": ""\n    "bannedWords": ""\n    "welcomeChannel": ""\n}';
+            var defConfig = `
+{
+	"version": "2",
+	"prefix": "~",
+	"logEvent": ["MEMBER_JOIN", "MEMBER_LEAVE", "MEMBER_KICKED", "MEMBER_BANNED"],
+	"disabledCommands": "",\n    "commandChannel": "",\n    "MemberCountChannel": ""
+	"modChannel": ""
+	"bannedWords": ""
+"welcomeChannel": ""
+}`;
             fs.writeFileSync(`./data/servers/${message.guild.id}/config.json`, defConfig);
             console.log(`[SYS] Config Written For Guild - Name: ${guild.name} | ID: ${guild.id}`.brightMagenta);
         }
@@ -162,10 +171,9 @@ client.on('message', message => {
 
 	    var config = require(`./data/servers/${message.guild.id}/config.json`);
 
-        //if it doesn't start with the prefix or is a bot, ignore
-	    if (!message.content.startsWith(config.prefix) || message.author.bot) return;
-	    //if the message is from a DM, ignore
-	    if (message.channel.type === 'dm') return;
+        //if any of these return true, ignore lol
+	    if (!message.content.startsWith(config.prefix) || message.author.bot || message.channel.type === 'dm') return;
+		
 	    //accepts commands if sent in command channel if send, mod channel, or if the sender has admin or manage server permissions
 	    if (config.commandChannel == undefined || message.channel.id === config.commandChannel || message.channel.id === config.modChannel || message.member.hasPermission('ADMINISTRATOR') || message.member.hasPermission('MANAGE_GUILD')) {
             try {
