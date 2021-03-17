@@ -20,7 +20,7 @@ All of the info not included on this page can be found there
 * Usage 
 * Missing File Checking
 * MD5 Hash Checking
-<br>
+
 ## Features coming out soon
 ### Reddit API
 Get the top/hottest memes or entitled people stories!
