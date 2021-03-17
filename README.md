@@ -20,9 +20,6 @@ All of the info not included on this page can be found there
 * Usage 
 * Missing File Checking
 * MD5 Hash Checking
-
-These are put at the top of a command file
-Here is an example
 <br>
 ## Features coming out soon
 ### Reddit API
