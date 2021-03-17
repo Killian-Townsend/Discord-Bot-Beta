@@ -1,4 +1,5 @@
 {
   "token": "Put your bot token here or something I dont know i you dont the bot will cry and whine with a very long error message becayse I cant fucking put error handing in the bot login thing",
-  "dataVersion": "2",
+  "dataVersion": 2,
+  "hashCheck": false
 }
