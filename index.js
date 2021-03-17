@@ -3,13 +3,39 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const colors = require('colors');
 const path = require('path');
-
-
 //client
 const client = new Discord.Client();
 
 
+console.log(colors.brightMagenta("[SYS] Starting..."));
 //functions and commands
+try{
+  if(fs.existsSync("./checkFiles.js")){
+    let chkDir = require('./checkFiles.js');
+    //
+    if(process.argv[2] === "rehash"){
+      chkDir.rehash();
+    }
+    // Check Files and Hashes
+    let res = chkDir.check();
+    
+    if(res.length > 0){
+      if(res[0] === 1){
+        console.log(colors.bold.brightRed(`[ERROR] Some Files/Directories  Could Not Be Located:${res[1]}`));
+      }else if(res[0] === 2){
+        console.log(colors.bold.brightRed(`[ERROR] Some  File Hashes Returned Invalid${res[1]}`));
+      }
+      process.exit();
+    }
+    
+  }else{
+    console.log(colors.bold.white.bgBrightRed("[FATAL] Missing File Check Script"));
+    process.exit();
+  }
+}catch(e){
+  console.log(colors.bold.white.bgBrightRed(`[FATAL] File Check Script Error | ${e.name}: ${e.message}`));
+}
+
 const botConfig = require("./botConfig.json");
 client.commands = new Discord.Collection();
 client.functions = new Discord.Collection();
@@ -24,6 +50,10 @@ for (const file of commandFiles) {
 for (const file of functionFiles) {
 	const functions = require(`./functions/${file}`);
 	client.functions.set(functions.name, functions);
+}
+if(botConfig.token === undefined || botConfig.token.split(" ").length > 1){
+  console.log(colors.bold.white.bgBrightRed("[FATAL] Invalid Bot Token"));
+  process.exit();
 }
 
 client.once('ready', () => {
@@ -60,34 +90,7 @@ client.once('ready', () => {
 
 	    //shows the error
 		console.log(`[FATAL] Loading Error : ${error}`.black.bgBrightRed);
-		//starts auto kill function
-		process.stdout.write("[FATAL] Bot Will Not Load And Will Close In 5 Seconds".black.bgBrightRed);
-            setTimeout(function(){
-                process.stdout.clearLine();
-                process.stdout.cursorTo(0);
-                process.stdout.write("[FATAL] Bot Will Not Load And Will Close In 4 Seconds".black.bgBrightRed);
-            }, 1000);
-            setTimeout(function(){
-                process.stdout.clearLine();
-                process.stdout.cursorTo(0);
-                process.stdout.write("[FATAL] Bot Will Not Load And Will Close In 3 Seconds".black.bgBrightRed);
-            }, 2000);
-            setTimeout(function(){
-                process.stdout.clearLine();
-                process.stdout.cursorTo(0);
-                process.stdout.write("[FATAL] Bot Will Not Load And Will Close In 2 Seconds".black.bgBrightRed);
-            }, 3000);
-            setTimeout(function(){
-                process.stdout.clearLine();
-                process.stdout.cursorTo(0);
-                process.stdout.write("[FATAL] Bot Will Not Load And Will Close In 1 Seconds".black.bgBrightRed);
-            }, 4000);
-            setTimeout(function(){
-                process.stdout.clearLine();
-                 process.stdout.cursorTo(0);
-                 process.stdout.write("[FATAL] Bot Will Not Load And Has Closed".black.bgBrightRed);
-                 process.exit();
-            }, 5000);
+    process.exit();
 
 	}
 
