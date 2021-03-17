@@ -11,30 +11,19 @@ This bot is customised for my discord server, so feel free to make the changes y
 
 This repo will soon have a wiki, but for now, all features can be found in the wiki on [Discord-Bot](https://github.com/kittypickles9982/Discord-Bot)
 
-ALl of the info not included on this page can be found there
-
+All of the info not included on this page can be found there
+<br>
 ## Beta features
 ### These are features not in the regular repo
-Cooldown
-
-Aliases 
-
-Usage 
+* Cooldown
+* Aliases 
+* Usage 
+* Missing File Checking
+* MD5 Hash Checking
 
 These are put at the top of a command file
 Here is an example
-```js
-module.exports = {
-  name: 'user',
-  description: 'Replies With User Info',
-  aliases: ['whois', 'member'],
-  usage: '<user>',
-  cooldown: 3,
-  execute(message, args) {
-    message.channel.send(`Your username: ${message.author.username}\nYour ID: ${message.author.id}`);
-  },
-};
-```
+<br>
 ## Features coming out soon
 ### Reddit API
 Get the top/hottest memes or entitled people stories!
