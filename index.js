@@ -3,21 +3,21 @@ const fs = require('fs');
 const Discord = require('discord.js');
 const colors = require('colors');
 const path = require('path');
+const strings = require('./values/strings.json');
 //client
 const client = new Discord.Client();
-
 
 console.log(colors.brightMagenta("[SYS] Starting..."));
 //functions and commands
 try{
-  if(fs.existsSync("./checkFiles.js")){
-    let chkDir = require('./checkFiles.js');
+  if(fs.existsSync("./functions/inter/checkFiles.js")){
+    let chkDir = require('./functions/inter/checkFiles.js');
     //
     if(process.argv[2] === "rehash"){
-      chkDir.rehash();
+      chkDir.rehash(chkDir);
     }
     // Check Files and Hashes
-    let res = chkDir.check();
+    let res = chkDir.check(chkDir);
     
     if(res.length > 0){
       if(res[0] === 1){
@@ -38,19 +38,20 @@ try{
 
 const botConfig = require("./botConfig.json");
 client.commands = new Discord.Collection();
-client.functions = new Discord.Collection();
+client.events = new Discord.Collection();
 const cooldowns = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-const functionFiles = fs.readdirSync('./functions').filter(file => file.endsWith('.js'));
+const eventFiles = fs.readdirSync('./events').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
 	const command = require(`./commands/${file}`);
 	client.commands.set(command.name, command);
 }
-for (const file of functionFiles) {
-	const functions = require(`./functions/${file}`);
-	client.functions.set(functions.name, functions);
+for (const file of eventFiles) {
+	const events = require(`./events/${file}`);
+	client.functions.set(events.name, events);
 }
+
 if(botConfig.token === undefined || botConfig.token.split(" ").length > 1){
   console.log(colors.bold.white.bgBrightRed("[FATAL] Invalid Bot Token"));
   process.exit();
@@ -82,16 +83,14 @@ client.once('ready', () => {
 		console.log('[INFO] Bot Ready!'.brightGreen);
         //add blank line
 		console.log('‎‎‎‎‎‎‎‎‏‏‎‎‎‏‎‎‎‏‎‎‎‏‏'.black);
-
+    
+    /*--CLEAR-THIS-BEFORE-RELEASE--*/
+    console.log(colors.brightMagenta("[SYS] Exiting"));
+    setTimeout(function(){process.exit()}, 500);
+    /*-----------------------------*/
 	} catch (error) {
-
-	    //if anything went wrong with bot loading, it will show an error and not load
-	    //this is because something going wrong above will most likely break the bot
-
-	    //shows the error
 		console.log(`[FATAL] Loading Error : ${error}`.black.bgBrightRed);
     process.exit();
-
 	}
 
 });
@@ -99,7 +98,7 @@ client.once('ready', () => {
 client.on ("guildMemberAdd", member => {
 
 	try {
-
+  
         if(!fs.existsSync(`./data/servers/${member.guild.id}/config.json`)) {
             var defConfig = '{\n    "version": "2",\n   "prefix": "~",\n    "logEvent": ["MEMBER_JOIN", "MEMBER_LEAVE", "MEMBER_KICKED", "MEMBER_BANNED"],\n    "disabledCommands": "",\n    "commandChannel": "",\n    "MemberCountChannel": ""\n    "modChannel": ""\n    "bannedWords": ""\n    "welcomeChannel": ""\n}';
             fs.writeFileSync(`./data/servers/${member.guild.id}/config.json`, defConfig);
@@ -156,19 +155,11 @@ client.on('message', message => {
     try {
 
         //checks if files exist
-        if(!fs.existsSync(`./data/servers/${message.guild.id}/config.json`)) {
+        if(fs.existsSync(`./data/servers/${message.guild.id}/config.json`)==true) {
             var defConfig = `
-{
-	"version": "2",
-	"prefix": "~",
-	"logEvent": ["MEMBER_JOIN", "MEMBER_LEAVE", "MEMBER_KICKED", "MEMBER_BANNED"],
-	"disabledCommands": "",\n    "commandChannel": "",\n    "MemberCountChannel": ""
-	"modChannel": ""
-	"bannedWords": ""
-"welcomeChannel": ""
-}`;
-            fs.writeFileSync(`./data/servers/${message.guild.id}/config.json`, defConfig);
-            console.log(`[SYS] Config Written For Guild - Name: ${guild.name} | ID: ${guild.id}`.brightMagenta);
+`;
+            fs.writeFileSync(`./data/servers/${message.guild.id}/config.json`, JSON.stringify(defConfig,null,2));
+            console.log(colors.brightMagenta(`[SYS] Config Written For Guild: ${guild.id} | ${guild.name}`));
         }
         //sets server config
 
@@ -206,56 +197,52 @@ client.on('message', message => {
                     }
                     const now = Date.now();
                     const timestamps = cooldowns.get(command.name);
-                    const cooldownAmount = (command.cooldown || 3) * 1000;
-                    if (timestamps.has(message.author.id)) {
-                    	const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
-                    	if (now < expirationTime) {
-                    		const timeLeft = (expirationTime - now) / 1000;
-                    		return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
-                    	}
-                    } else {
-                        timestamps.set(message.author.id, now);
-                        setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
-                    }
-
-                    //executes whatever command was given
-                    try {
-                        command.execute(message, args, config, client);
-                    } catch (error) {
-                        console.log(`[WARNING] Command Error : ${error}`.yellow.bold);
-                    }
-
-                }
-		    } catch (error) {
-		    	//this will happen if the command given is not a command in the commands folder
-		    	console.log(`[WARNING] Command Error : ${error}`.yellow.bold);
-		    }
-		}
+          const cooldownAmount = (command.cooldown || 3) * 1000;
+          if (timestamps.has(message.author.id)) {
+        	const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+        	if (now < expirationTime) {
+            const timeLeft = (expirationTime - now) / 1000;
+            return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
+        	}
+        } else {
+          timestamps.set(message.author.id, now);
+          setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+        }
+        
+        //executes whatever command was given
         try {
-		    //logs the command and when it was sent in the console
-			var now = Date.now();
-		    var dateObj = new Date(now);
-		    var hours = dateObj.getUTCHours() - 4;
-		    var minutes = dateObj.getUTCMinutes();
-		    var seconds = dateObj.getUTCSeconds();
-		    //turns the different times into one string
-		    var comSendForm = hours.toString().padStart(2, '0') + ':' + minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
-		    //puts the time and command together and outputs it in the console
-		    if(!command){
-		        console.log(`[CMD] ${comSendForm}  |  Command Sent : ${commandName}`.brightCyan);
-		    } else {
-		   	    console.log(`[CMD] ${comSendForm}  |  Command Sent : ${command.name}`.brightCyan);
-		   	}
+          command.execute(message, args, config, client);
+        } catch (error) {
+          console.log(`[WARNING] Command Error : ${error}`.yellow.bold);
+        }
+        
+      }
 		} catch (error) {
-		    //in case something is wrong with the command logging
-		    console.log(`[ERROR] Command Logging Error : ${error}`.brightRed.bold);
+		  //this will happen if the command given is not a command in the commands folder
+		  console.log(`[WARNING] Command Error : ${error}`.yellow.bold);
+		  }
 		}
-    } catch (error) {
-        //never had this go off, but in case something is wrong in the entire on message function
-        //but the other try statements will catch those errors
-        //still better to be safe than sorry
+    try {
+		  //logs the command and when it was sent in the console
+			var now = Date.now();
+		  var dateObj = new Date(now);
+		  var hours = dateObj.getUTCHours() - 4;
+		  var minutes = dateObj.getUTCMinutes();
+		  var seconds = dateObj.getUTCSeconds();
+		  //turns the different times into one string
+		  var comSendForm = hours.toString().padStart(2, '0') + ':' + minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+		  //puts the time and command together and outputs it in the console
+		  if(!command){
+        console.log(`[CMD] ${comSendForm}  |  Command Sent : ${commandName}`.brightCyan);
+		  } else {
+		    console.log(`[CMD] ${comSendForm}  |  Command Sent : ${command.name}`.brightCyan);
+		  }
+		} catch (error) {
+		  console.log(`[ERROR] Command Logging Error : ${error}`.brightRed.bold);
+		}
+  } catch (error) {
         console.log(`[WARNING] Command Error : ${error}`.yellow.bold);
-    }
+  }
 });
 
 client.login(botConfig.token);
