@@ -1,13 +1,13 @@
 module.exports = {
   
-  check(){
+  check(self){
     const colors = require('colors');
     try{
       
       // Stuff 
       const fs = require("fs");
-      const checkFiles = require("./checkFiles");
-      const FaH = require("./files.json");
+      const checkFiles = self;
+      const FaH = require("../../values/files.json");
       let hashChk = false;
       let missing = [];
       let hashFail = [];
@@ -15,9 +15,9 @@ module.exports = {
       let keys = Object.keys(FaH);
       
       if(fs.existsSync("./botConfig.json")){
-        hashChk = require("./botConfig.json").hashCheck;
+        hashChk = require("../../botConfig.json").hashCheck;
       }
-
+      
       // Check Files
       console.log("[SYS] Checking Files".brightMagenta)
       for(let i=0;i<keys.length;i++){
@@ -72,15 +72,15 @@ module.exports = {
     }
   },
   
-  rehash: function(){
+  rehash: function(self){
 
     try{
       const colors = require('colors');
       const fs = require('fs');
       console.log("[SYS] Updating Hashes".brightMagenta);
     
-      const FaH = require("./files.json", "utf8");
-      const checkFiles = require("./checkFiles");
+      const FaH = require("../../values/files.json", "utf8");
+      const checkFiles = self;
       let pairs = Object.entries(FaH);
       let files = Object.keys(FaH);
       let hashes = Object.values(FaH);
@@ -96,7 +96,7 @@ module.exports = {
       }
       
       console.log(colors.brightMagenta("[SYS] Writing New Hashes"));
-      fs.writeFileSync("./files.json", JSON.stringify(FaH, null, 2));
+      fs.writeFileSync("./values/files.json", JSON.stringify(FaH, null, 2));
       
       console.log(colors.brightMagenta(`[SYS] Hashes Updated`));
       return;
