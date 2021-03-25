@@ -1,11 +1,11 @@
 {
-  "name": "force-utilities",
-  "version": "0.8.1",
-  "description": "An Interesting Discord Bot",
+  "name": "Discord-Bot",
+  "version": "0.8.4",
+  "description": "An Custom Discord Bot",
   "main": "index.js",
   "dependencies": {
     "colors": "^1.4.0",
-    "discord.js": "^12.3.1"
+    "discord.js": "^12.3.1",
   },
   "devDependencies": {},
   "scripts": {
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kittypickles9982/Discord-Bot.git"
+    "url": "git+https://github.com/kittypickles9982/Discord-Bot-Beta.git"
   },
   "keywords": [
     "discord"
@@ -21,7 +21,7 @@
   "author": "kittypickles9982",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/kittypickles9982/Discord-Bot/issues"
+    "url": "https://github.com/kittypickles9982/Discord-Bot-Beta/issues"
   },
-  "homepage": "https://github.com/kittypickles9982/Discord-Bot#readme"
+  "homepage": "https://github.com/kittypickles9982/Discord-Bot-Beta#readme"
 }
