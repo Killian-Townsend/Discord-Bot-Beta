@@ -1,8 +1,8 @@
 module.exports = {
 	name: 'user_join',
 	execute(member, client, config) {
-
-        /*//if welcome message is set, try to send DM
+	
+		/*//if welcome message is set, try to send DM
         if (config.welcomeChannel) {
             try {
                 //attempts to send the welcome message
